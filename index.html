@@ -1484,34 +1484,31 @@
           </div>
         `
       },
-
-      { // 7 — Case Study: Medical Neurorehab
+      { // 6 — App 3: Predictive Tracking
         sceneIdx: 2,
         sky: 0x060610, fog: 0x060610, fogFar: 200,
-        cam: { pos: [4, 6, 16], tgt: [0, 2, 2] },
+        cam: { pos: [-4, 4, 14], tgt: [0, 2, 2] },
         html: `
-          <div class="ptag"><span class="ptag-dot" style="background:var(--amber)"></span> Slide 09 · Case Study 04</div>
-          <div class="ptitle">Medical<br><span style="color:var(--amber)">Neurorehabilitation</span></div>
-          <div class="csbox">
-            <div class="csbox-title">The Project</div>
-            <div class="csbox-text">Integrated eye-tracking VR systems (<em>Varjo/machineMD</em> collaboration).</div>
-          </div>
-          <div class="csbox">
-            <div class="csbox-title">Functionality</div>
-            <div class="csbox-text">Using <em>200Hz sampling</em> to track gaze patterns during surgical training and diagnostic assessments.</div>
-          </div>
-          <div class="csbox">
-            <div class="csbox-title">Result</div>
-            <div class="csbox-text">AI-driven metrics identified <em>"visuomotor strategies"</em> in patients, treating PTSD and chronic pain with <em>40% better outcomes</em> compared to non-AI-assisted VR.</div>
+          <div class="ptag"><span class="ptag-dot" style="background:var(--cyan)"></span> Slide 09 · Application 4</div>
+          <div class="ptitle">Predictive<br><span style="color:var(--cyan)">Tracking</span> & Optimization</div>
+          <ul class="pbullets">
+            <li><strong>Gaze Tracking:</strong> AI interprets <em>eye movement</em> and hand gestures to optimize rendering and UI.</li>
+            <li><strong>Foveated Rendering:</strong> AI predicts where the user is looking and concentrates processing power on that <em>specific point</em>, leaving periphery at lower resolution.</li>
+            <li><strong>Cognitive Load Sensing:</strong> AI monitors <em>pupil dilation</em> and blink rates to adjust task difficulty or interface complexity.</li>
+          </ul>
+          <div class="ptechs">
+            <span class="ptag-chip" style="color:var(--cyan);border-color:rgba(14,165,233,.2)">Eye Track</span>
+            <span class="ptag-chip" style="color:var(--violet);border-color:rgba(167,139,250,.2)">Foveated</span>
+            <span class="ptag-chip" style="color:var(--amber);border-color:rgba(240,165,0,.2)">Cognitive AI</span>
+            <span class="ptag-chip" style="color:var(--emerald);border-color:rgba(52,211,153,.2)">Haptics</span>
           </div>
         `
-      },
       { // 8 — NVIDIA DLSS 3 & RTX
         sceneIdx: 3,
         sky: 0x060610, fog: 0x060610, fogFar: 200,
         cam: { pos: [6, 4, 12], tgt: [2, 1, 0] },
         html: `
-          <div class="ptag"><span class="ptag-dot" style="background:var(--emerald)"></span> Slide 10 · Case Study 05</div>
+          <div class="ptag"><span class="ptag-dot" style="background:var(--emerald)"></span> Slide 10 · Case Study 04</div>
           <div class="ptitle">NVIDIA <span style="color:var(--emerald)">DLSS 3</span><br>& RTX in VR</div>
           <div class="psubtitle">AI-Powered Real-Time Rendering Upscaling</div>
           <div class="csbox">
@@ -1534,7 +1531,7 @@
         sky: 0x060610, fog: 0x060610, fogFar: 200,
         cam: { pos: [8, 5, 14], tgt: [2, 1, 0] },
         html: `
-          <div class="ptag"><span class="ptag-dot" style="background:var(--emerald)"></span> Slide 11 · Case Study 06</div>
+          <div class="ptag"><span class="ptag-dot" style="background:var(--emerald)"></span> Slide 11 · Case Study 05</div>
           <div class="ptitle">NVIDIA <span style="color:var(--emerald)">Omniverse</span><br>& GR00T-Mimic</div>
           <div class="csbox">
             <div class="csbox-title">The Technology</div>
@@ -1612,7 +1609,7 @@
     const transEl = document.getElementById('transition');
 
     // Build nav dots
-    const dotLabels = ['INTRO', 'AI 2026', 'HEALTH', 'SEPSIS', 'NPCs', 'CASE 02', 'WORLDS', 'CASE 03', 'CASE 04', 'DLSS', 'OMNIVERSE', 'CONCLUSION', 'FUTURE'];
+    const dotLabels = ['INTRO', 'AI 2026', 'HEALTH', 'SEPSIS', 'NPCs', 'CASE 02', 'WORLDS', 'CASE 03', 'TRACKING', 'DLSS', 'OMNIVERSE', 'CONCLUSION', 'FUTURE'];
     SLIDES.forEach((_, i) => {
       const d = document.createElement('div');
       d.className = 'ndot' + (i === 0 ? ' on' : '');
