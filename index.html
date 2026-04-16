@@ -743,7 +743,7 @@
       <div class="logo-icon">◉</div>
       <span>AI <span style="color:var(--cyan)">× VR</span></span>
     </div>
-    <div id="slide-counter">01 / 11</div>
+    <div id="slide-counter">01 / 14</div>
   </div>
 
   <!-- Nav dots -->
@@ -1011,169 +1011,204 @@
       scene.add(g); sceneGroups.push(g);
     })();
 
-    /* ── SCENE C: Terrain/World (slides 4-5) ───────────── */
+    /* ── SCENE C: Historic Cathedral (slides 4-5) ───────────── */
     (() => {
       const g = new THREE.Group();
-      // Procedural terrain
-      const TSEG = 80;
-      const tg = new THREE.PlaneGeometry(60, 60, TSEG, TSEG);
-      tg.rotateX(-Math.PI / 2);
-      const tp = tg.attributes.position;
-      const tc = new Float32Array(tp.count * 3);
-      tg.setAttribute('color', new THREE.BufferAttribute(tc, 3));
-      for (let i = 0; i < tp.count; i++) {
-        const x = tp.getX(i) * .06, z = tp.getZ(i) * .06;
-        const h = Math.max(0, octN(x + 5, z + 5) * 12);
-        tp.setY(i, h);
-        // Vibrant color by height (high-contrast saturated biome)
-        let r, gb, b;
-        if (h < .5) { r = .04; gb = .22; b = .55; }        // deep blue water
-        else if (h < 1.2) { r = .55; gb = .72; b = .28; }  // bright sandy green
-        else if (h < 3) { r = .15; gb = .65; b = .12; }    // vivid green grass
-        else if (h < 5.5) { r = .08; gb = .48; b = .08; }  // dark forest green
-        else if (h < 8) { r = .45; gb = .32; b = .15; }    // warm brown rock
-        else if (h < 10) { r = .55; gb = .45; b = .38; }   // light rock
-        else { r = .95; gb = .97; b = 1.0; }                // bright snow
-        tc[i * 3] = r; tc[i * 3 + 1] = gb; tc[i * 3 + 2] = b;
+
+      const texGround = (() => {
+        const c = document.createElement('canvas'); c.width = c.height = 512;
+        const ctx = c.getContext('2d');
+        ctx.fillStyle = '#131e13'; ctx.fillRect(0,0,512,512);
+        for(let i=0; i<8000; i++) {
+           ctx.fillStyle = Math.random() > 0.6 ? '#1b2a1a' : (Math.random() > 0.5 ? '#23321f' : '#293a24');
+           ctx.fillRect(Math.random()*512, Math.random()*512, 1 + Math.random()*3, 2 + Math.random()*6);
+        }
+        for(let i=0; i<2000; i++) {
+           ctx.fillStyle = '#29201a';
+           ctx.beginPath();
+           ctx.arc(Math.random()*512, Math.random()*512, 1 + Math.random()*12, 0, Math.PI*2);
+           ctx.fill();
+        }
+        const tex = new THREE.CanvasTexture(c);
+        tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+        tex.repeat.set(12, 12);
+        return tex;
+      })();
+
+      const gnd = mk(new THREE.PlaneGeometry(60, 60), new THREE.MeshStandardMaterial({ map: texGround, roughness: 1.0, metalness: 0.05 }));
+      gnd.rotation.x = -Math.PI / 2;
+      gnd.receiveShadow = true;
+      g.add(gnd);
+
+      const bgroup = new THREE.Group();
+      const texWall = (() => {
+        const c = document.createElement('canvas'); c.width = c.height = 256;
+        const ctx = c.getContext('2d');
+        ctx.fillStyle = '#2a1a0f'; ctx.fillRect(0,0,256,256);
+        for(let i=0; i<3000; i++) {
+           ctx.fillStyle = Math.random() > 0.5 ? '#3a2515' : '#1c1008';
+           ctx.fillRect(Math.random()*256, Math.random()*256, 4 + Math.random()*8, 2 + Math.random()*2);
+        }
+        const tex = new THREE.CanvasTexture(c);
+        tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+        return tex;
+      })();
+
+      const texRoof = (() => {
+        const c = document.createElement('canvas'); c.width = c.height = 256;
+        const ctx = c.getContext('2d');
+        ctx.fillStyle = '#1c0a05'; ctx.fillRect(0,0,256,256);
+        for(let y=0; y<256; y+=16) {
+           ctx.fillStyle = '#110502';
+           ctx.fillRect(0, y+14, 256, 2);
+           for(let x=0; x<256; x+=16) {
+               ctx.fillRect(x + (y%32===0?0:8), y, 2, 16);
+           }
+        }
+        const tex = new THREE.CanvasTexture(c);
+        tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+        return tex;
+      })();
+
+      const texSpire = (() => {
+        const c = document.createElement('canvas'); c.width = c.height = 256;
+        const ctx = c.getContext('2d');
+        ctx.fillStyle = '#0f1a14'; ctx.fillRect(0,0,256,256);
+        for(let i=0; i<1000; i++) {
+           ctx.fillStyle = Math.random() > 0.5 ? '#14251a' : '#0a100c';
+           ctx.fillRect(Math.random()*256, Math.random()*256, 1, 8 + Math.random()*16);
+        }
+        const tex = new THREE.CanvasTexture(c);
+        tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+        return tex;
+      })();
+
+      const wallMat = new THREE.MeshStandardMaterial({ map: texWall, roughness: 0.9, metalness: 0.1 });
+      const roofMat = new THREE.MeshStandardMaterial({ map: texRoof, roughness: 0.9, metalness: 0.1 });
+      const spireMat = new THREE.MeshStandardMaterial({ map: texSpire, roughness: 0.8, metalness: 0.2 });
+      const darkMat = new THREE.MeshStandardMaterial({ color: 0x070402, roughness: 0.9, metalness: 0.0 });
+
+      // Main Nave
+      bgroup.add(mk(new THREE.BoxGeometry(8, 8, 16), wallMat).translateY(4));
+      const naveR = mk(new THREE.ConeGeometry(5.65, 4, 4), roofMat);
+      naveR.rotation.y = Math.PI/4; naveR.scale.set(1, 1, 2); naveR.position.set(0, 10, 0);
+      bgroup.add(naveR);
+
+      // Transept (cross element)
+      bgroup.add(mk(new THREE.BoxGeometry(12, 7.5, 5), wallMat).translateY(3.75).translateZ(-2));
+      const transR = mk(new THREE.ConeGeometry(8.48, 4, 4), roofMat);
+      transR.rotation.y = Math.PI/4; transR.scale.set(1, 1, 5/12); transR.position.set(0, 9.5, -2);
+      bgroup.add(transR);
+
+      // Front Towers
+      bgroup.add(mk(new THREE.BoxGeometry(3, 12, 3), wallMat).translateY(6).translateX(4).translateZ(8));
+      bgroup.add(mk(new THREE.BoxGeometry(3, 12, 3), wallMat).translateY(6).translateX(-4).translateZ(8));
+      const t1 = mk(new THREE.ConeGeometry(2.12, 4, 4), spireMat);
+      t1.rotation.y = Math.PI/4; t1.position.set(4, 14, 8); bgroup.add(t1);
+      const t2 = mk(new THREE.ConeGeometry(2.12, 4, 4), spireMat);
+      t2.rotation.y = Math.PI/4; t2.position.set(-4, 14, 8); bgroup.add(t2);
+
+      // Tall Tower (back)
+      bgroup.add(mk(new THREE.BoxGeometry(3.2, 10, 3.2), wallMat).translateY(5).translateX(-3.5).translateZ(-6));
+      bgroup.add(mk(new THREE.BoxGeometry(2.5, 18, 2.5), wallMat).translateY(9).translateX(-3.5).translateZ(-6));
+      const tallSpire = mk(new THREE.ConeGeometry(1.76, 6, 8), spireMat);
+      tallSpire.position.set(-3.5, 21, -6); bgroup.add(tallSpire);
+
+      // Add windows to Nave
+      for (let z of [-5, -2, 1, 4]) {
+         const wbox = mk(new THREE.BoxGeometry(8.2, 3, 1), darkMat);
+         wbox.position.set(0, 3.5, z);
+         bgroup.add(wbox);
+         const warch = mk(new THREE.CylinderGeometry(0.5, 0.5, 8.2, 16), darkMat);
+         warch.rotation.z = Math.PI/2;
+         warch.position.set(0, 5, z);
+         bgroup.add(warch);
       }
-      tg.attributes.color.needsUpdate = true;
-      tg.computeVertexNormals();
-      const terrain = mk(tg, new THREE.MeshStandardMaterial({ vertexColors: true, roughness: .6, metalness: .02 }));
-      terrain.receiveShadow = true; g.add(terrain);
-      g.userData.terrain = terrain;
-      // Water
-      const water = mk(new THREE.PlaneGeometry(60, 60), new THREE.MeshStandardMaterial({ color: 0x0077cc, emissive: 0x003366, emissiveIntensity: .15, roughness: .02, metalness: .25, transparent: true, opacity: .85 }));
-      water.rotation.x = -Math.PI / 2; water.position.y = .5; g.add(water);
-      g.userData.water = water;
-      // Scan beam
-      const scan = mk(new THREE.PlaneGeometry(60, .06), new THREE.MeshBasicMaterial({ color: 0x0ea5e9, transparent: true, opacity: .2, side: THREE.DoubleSide }));
-      scan.rotation.x = -Math.PI / 2; scan.position.y = .15; g.add(scan);
-      g.userData.scan = scan;
-      // Instanced trees
-      const dummy = new THREE.Object3D();
-      const trunks = new THREE.InstancedMesh(new THREE.CylinderGeometry(.08, .18, 1, 8), mS(0x5a3318, .85), 40);
-      const canopy = new THREE.InstancedMesh(new THREE.ConeGeometry(.8, 1.3, 8), new THREE.MeshStandardMaterial({ color: 0x1a7a22, roughness: .75, metalness: .02 }), 40);
-      for (let i = 0; i < 40; i++) {
-        const x = (Math.random() - .5) * 50, z = (Math.random() - .5) * 50;
-        const h = 1.5 + Math.random() * 2.5;
-        dummy.position.set(x, h * .22, z); dummy.scale.set(.6, h * .5, .6);
-        dummy.rotation.y = Math.random() * Math.PI * 2; dummy.updateMatrix();
-        trunks.setMatrixAt(i, dummy.matrix);
-        dummy.position.set(x, h * .5, z); dummy.scale.set(.8, .9, .8);
-        dummy.updateMatrix(); canopy.setMatrixAt(i, dummy.matrix);
-      }
-      trunks.instanceMatrix.needsUpdate = true; canopy.instanceMatrix.needsUpdate = true;
-      g.add(trunks, canopy);
-      // AI label dots
-      [[14, 6, 10, 0x0ea5e9], [-18, 3, -14, 0x34d399], [4, 9, 20, 0xffffff]].forEach(([x, y, z, c]) => {
-        g.add(mk(new THREE.SphereGeometry(.15, 8, 8), mG(c, 4)).translateX(x).translateY(y).translateZ(z));
-        const ring = mk(new THREE.TorusGeometry(.4, .02, 8, 30), mG(c, 2));
-        ring.rotation.x = Math.PI / 2; ring.position.set(x, y - .1, z); g.add(ring);
-      });
-      g.position.y = -1; g.visible = false;
+
+      g.add(bgroup);
+      g.userData.cathedral = bgroup;
+
+      g.position.y = -3;
+      g.visible = false;
       scene.add(g); sceneGroups.push(g);
     })();
 
-    /* ── SCENE D: Eye/Tracking/GPU (slides 6-7-8) ──────── */
+    /* ── SCENE D: AI Car Model (slides 6-7-8-9) ──────── */
     (() => {
       const g = new THREE.Group();
-      // Eye model — realistic sphere
-      const eyeOuter = mk(new THREE.SphereGeometry(2.5, 48, 48), new THREE.MeshStandardMaterial({
-        color: 0xf0ebe6, roughness: .25, metalness: .02
-      }));
-      eyeOuter.castShadow = true; g.add(eyeOuter);
 
-      // Blood vessel lines on eye
-      for (let i = 0; i < 6; i++) {
-        const pts = [];
-        const a0 = Math.random() * Math.PI * 2;
-        for (let k = 0; k < 12; k++) {
-          const a = a0 + k * .08; const r = 2.52;
-          pts.push(new THREE.Vector3(Math.cos(a) * r * Math.cos(k * .15), Math.sin(k * .15 - .4) * r, Math.sin(a) * r * Math.cos(k * .15)));
+      const gnd = mk(new THREE.PlaneGeometry(60, 60), new THREE.MeshStandardMaterial({ color: 0x050508, roughness: 0.6, metalness: 0.5 }));
+      gnd.rotation.x = -Math.PI / 2;
+      gnd.receiveShadow = true;
+      g.add(gnd);
+
+      const grid = new THREE.GridHelper(60, 30, 0x34d399, 0x34d399);
+      grid.position.y = 0.02;
+      grid.material.opacity = 0.08;
+      grid.material.transparent = true;
+      g.add(grid);
+
+      const car = new THREE.Group();
+
+      const cmat = new THREE.MeshStandardMaterial({ color: 0x020305, roughness: 0.15, metalness: 0.9 });
+      const cbody = mk(new THREE.BoxGeometry(2.4, 0.6, 5.5), cmat);
+      cbody.position.y = 0.6;
+      car.add(cbody);
+
+      const ccabin = mk(new THREE.BoxGeometry(1.8, 0.7, 2.5), new THREE.MeshStandardMaterial({ color: 0x000000, roughness: 0.0, metalness: 1.0, transparent: true, opacity: 0.9 }));
+      ccabin.position.set(0, 1.25, -0.3);
+      car.add(ccabin);
+
+      const wm = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.9 });
+      const wr = mG(0x0ea5e9, 3);
+      for (let x of [-1.3, 1.3]) {
+        for (let z of [-1.8, 1.6]) {
+          const w = mk(new THREE.CylinderGeometry(0.5, 0.5, 0.4, 24), wm);
+          w.rotation.z = Math.PI / 2;
+          w.position.set(x, 0.5, z);
+          car.add(w);
+          const wring = mk(new THREE.TorusGeometry(0.3, 0.05, 12, 32), wr);
+          wring.rotation.y = Math.PI / 2;
+          wring.position.set(x > 0 ? x + 0.2 : x - 0.2, 0.5, z);
+          car.add(wring);
         }
-        g.add(new THREE.Line(
-          new THREE.BufferGeometry().setFromPoints(pts),
-          new THREE.LineBasicMaterial({ color: 0xcc5544, transparent: true, opacity: .12 })
-        ));
       }
 
-      // Iris — vivid gradient look
-      const iris = mk(new THREE.SphereGeometry(1.15, 48, 48), new THREE.MeshStandardMaterial({
-        color: 0x1155bb, emissive: 0x0066cc, emissiveIntensity: .8, roughness: .12, metalness: .35
-      }));
-      iris.position.z = 1.6; iris.scale.set(1, 1, .28); g.add(iris);
-      g.userData.iris = iris;
+      const hl1 = mk(new THREE.BoxGeometry(0.6, 0.08, 0.1), mG(0xffffff, 5));
+      hl1.position.set(-0.8, 0.7, 2.75);
+      car.add(hl1);
 
-      // Iris ring
-      const irisRing = mk(new THREE.TorusGeometry(1.15, .06, 12, 48), new THREE.MeshStandardMaterial({
-        color: 0x0088dd, emissive: 0x0055aa, emissiveIntensity: .5, roughness: .3
-      }));
-      irisRing.position.z = 1.62; g.add(irisRing);
+      const hl2 = mk(new THREE.BoxGeometry(0.6, 0.08, 0.1), mG(0xffffff, 5));
+      hl2.position.set(0.8, 0.7, 2.75);
+      car.add(hl2);
 
-      // Pupil — deep black with subtle reflex
-      const pupil = mk(new THREE.SphereGeometry(.5, 32, 32), new THREE.MeshStandardMaterial({
-        color: 0x020202, emissive: 0x000000, roughness: .05, metalness: .6
-      }));
-      pupil.position.z = 1.88; pupil.scale.set(1, 1, .12); g.add(pupil);
-      g.userData.pupil = pupil;
+      const tl = mk(new THREE.BoxGeometry(2.2, 0.1, 0.1), mG(0xff0033, 4));
+      tl.position.set(0, 0.7, -2.75);
+      car.add(tl);
 
-      // Light reflex on eye
-      const reflex = mk(new THREE.SphereGeometry(.15, 12, 12), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: .7 }));
-      reflex.position.set(.4, .4, 2.4); g.add(reflex);
+      const under = mk(new THREE.PlaneGeometry(2, 5), mG(0x0ea5e9, 2));
+      under.rotation.x = -Math.PI / 2;
+      under.position.y = 0.15;
+      car.add(under);
 
-      // Scan rings — holographic
       const scanRings = [];
-      for (let i = 0; i < 5; i++) {
-        const sr = mk(new THREE.TorusGeometry(3.2 + i * .55, .04, 12, 48), mG([0x0ea5e9, 0xa78bfa, 0xf0a500, 0x34d399, 0xf472b6][i], 2.5 - i * .3));
-        sr.position.z = .4;
-        sr.userData.spd = .01 + i * .004;
-        g.add(sr); scanRings.push(sr);
-      }
+      const sr = mk(new THREE.TorusGeometry(3.5, 0.05, 12, 60), mG(0x34d399, 3));
+      sr.rotation.x = Math.PI / 2;
+      car.add(sr);
+      scanRings.push(sr);
       g.userData.scanRings = scanRings;
+      g.userData.car = car;
+      g.add(car);
 
-      // Gaze ray — glowing line
-      const rayGeo = new THREE.CylinderGeometry(.015, .008, 10, 8);
-      rayGeo.rotateX(Math.PI / 2);
-      const ray = mk(rayGeo, mG(0x0ea5e9, 3));
-      ray.position.z = 7.5; g.add(ray);
-
-      // Target reticle — diamond shape
-      const reticle = mk(new THREE.TorusGeometry(.45, .04, 4, 4), mG(0x0ea5e9, 5));
-      reticle.position.z = 12.5; g.add(reticle); g.userData.reticle = reticle;
-      const reticle2 = mk(new THREE.TorusGeometry(.3, .025, 4, 4), mG(0xa78bfa, 3));
-      reticle2.position.z = 12.5; reticle2.rotation.z = Math.PI / 4; g.add(reticle2);
-      g.userData.reticle2 = reticle2;
-
-      // GPU chip (for DLSS slide) — more detailed
-      const gpu = new THREE.Group();
-      const gpuBase = mk(new THREE.BoxGeometry(3.5, .35, 3.5), new THREE.MeshStandardMaterial({ color: 0x0d1520, roughness: .2, metalness: .85 }));
-      gpuBase.castShadow = true; gpu.add(gpuBase);
-      // GPU top decorative ridges
-      for (let i = 0; i < 8; i++) {
-        gpu.add(mk(new THREE.BoxGeometry(3.2, .03, .04), mG(0x0ea5e9, .8)).translateY(.19).translateZ(-1.4 + i * .4));
-      }
-      // Die
-      const die = mk(new THREE.BoxGeometry(1.4, .12, 1.4), mG(0x34d399, 2.5));
-      die.position.y = .24; gpu.add(die);
-      // Die inner detail
-      const dieInner = mk(new THREE.BoxGeometry(.7, .04, .7), mG(0xf0a500, 2));
-      dieInner.position.y = .32; gpu.add(dieInner);
-      // Pin rows
-      for (let r = 0; r < 2; r++) {
-        for (let c = 0; c < 12; c++) {
-          const pin = mk(new THREE.BoxGeometry(.04, .15, .04), mS(0xb8a060, .2, .9));
-          pin.position.set(-1.5 + c * .27, -.25, r === 0 ? -1.6 : 1.6); gpu.add(pin);
-        }
-      }
-      gpu.position.set(5.5, -1.5, -3.5); gpu.rotation.x = -.25; gpu.rotation.y = .45;
-      g.add(gpu); g.userData.gpu = gpu;
-
-      // Particles
-      const pg = new THREE.BufferGeometry(), pp = new Float32Array(400 * 3);
-      for (let i = 0; i < 400; i++) { const a = Math.random() * Math.PI * 2, r = 3 + Math.random() * 10; pp[i * 3] = Math.cos(a) * r; pp[i * 3 + 1] = (Math.random() - .5) * 6; pp[i * 3 + 2] = Math.sin(a) * r; }
+      const pg = new THREE.BufferGeometry(), pp = new Float32Array(300 * 3);
+      for (let i = 0; i < 300; i++) { pp[i * 3] = (Math.random() - .5) * 8; pp[i * 3 + 1] = Math.random() * 2; pp[i * 3 + 2] = -3 - Math.random() * 15; }
       pg.setAttribute('position', new THREE.BufferAttribute(pp, 3));
-      g.add(new THREE.Points(pg, new THREE.PointsMaterial({ color: 0x0ea5e9, size: .08, transparent: true, opacity: .45, blending: THREE.AdditiveBlending, depthWrite: false })));
-      g.position.y = 2; g.visible = false;
+      const pts = new THREE.Points(pg, new THREE.PointsMaterial({ color: 0x0ea5e9, size: 0.08, transparent: true, opacity: 0.5, blending: THREE.AdditiveBlending }));
+      g.add(pts);
+      g.userData.speedPts = pts;
+
+      g.position.y = -1;
+      g.visible = false;
       scene.add(g); sceneGroups.push(g);
     })();
 
@@ -1207,6 +1242,86 @@
       pg.setAttribute('position', new THREE.BufferAttribute(pp, 3));
       g.add(new THREE.Points(pg, new THREE.PointsMaterial({ color: 0x0ea5e9, size: .12, transparent: true, opacity: .45, blending: THREE.AdditiveBlending, depthWrite: false })));
       g.position.y = 2; g.visible = false;
+      scene.add(g); sceneGroups.push(g);
+    })();
+
+    /* ── SCENE F: Surgery Room (slides 3-4) ───────────── */
+    (() => {
+      const g = new THREE.Group();
+      
+      const gnd = mk(new THREE.PlaneGeometry(60, 60), new THREE.MeshStandardMaterial({ color: 0x070c14, roughness: 0.3, metalness: 0.6 }));
+      gnd.rotation.x = -Math.PI / 2;
+      gnd.receiveShadow = true;
+      g.add(gnd);
+      
+      const grid = new THREE.GridHelper(60, 30, 0x0ea5e9, 0x0ea5e9);
+      grid.position.y = 0.01;
+      grid.material.opacity = 0.05;
+      grid.material.transparent = true;
+      g.add(grid);
+
+      const tableBase = mk(new THREE.CylinderGeometry(0.8, 1.2, 1.5, 16), new THREE.MeshStandardMaterial({ color: 0x111620, roughness: 0.2, metalness: 0.8 }));
+      tableBase.position.y = 0.75;
+      g.add(tableBase);
+      
+      const tableTop = mk(new THREE.BoxGeometry(2.5, 0.2, 6), new THREE.MeshStandardMaterial({ color: 0x071118, roughness: 0.1, metalness: 0.9 }));
+      tableTop.position.set(0, 1.6, 0);
+      g.add(tableTop);
+      
+      const monitorGrp = new THREE.Group();
+      const stand = mk(new THREE.CylinderGeometry(0.1, 0.1, 3.5, 8), new THREE.MeshStandardMaterial({ color: 0x111620, roughness: 0.3, metalness: 0.7 }));
+      stand.position.set(-3, 1.75, -2);
+      monitorGrp.add(stand);
+      
+      const screen = mk(new THREE.BoxGeometry(2.5, 1.5, 0.2), new THREE.MeshStandardMaterial({ color: 0x020202, roughness: 0.3, metalness: 0.5 }));
+      screen.position.set(-2.5, 3.2, -1.8);
+      screen.rotation.y = Math.PI/6;
+      monitorGrp.add(screen);
+      
+      const pts = [];
+      for(let x=0; x<2; x+=0.05) {
+         let y = 0;
+         let k = x % 1.0;
+         if (k > 0.4 && k < 0.45) y = 0.2;
+         else if (k >= 0.45 && k < 0.5) y = -0.15;
+         else if (k >= 0.5 && k < 0.6) y = 0.6;
+         else if (k >= 0.6 && k < 0.65) y = -0.3;
+         else if (k >= 0.65 && k < 0.75) y = 0.1;
+         pts.push(new THREE.Vector3(x - 1, y, 0));
+      }
+      const ecgGeo = new THREE.BufferGeometry().setFromPoints(pts);
+      const ecgLine = new THREE.Line(ecgGeo, new THREE.LineBasicMaterial({color: 0x34d399, transparent: true, opacity: 0.8}));
+      ecgLine.position.set(-2.5, 3.25, -1.68);
+      ecgLine.rotation.y = Math.PI/6;
+      monitorGrp.add(ecgLine);
+      g.userData.ecg = ecgLine;
+
+      g.add(monitorGrp);
+      
+      const lightGrp = new THREE.Group();
+      const lArm = mk(new THREE.CylinderGeometry(0.1, 0.1, 4, 8), new THREE.MeshStandardMaterial({ color: 0x222630 }));
+      lArm.position.set(0, 7, 3);
+      lArm.rotation.x = Math.PI/4;
+      lightGrp.add(lArm);
+      
+      const lHead = mk(new THREE.CylinderGeometry(2, 2, 0.4, 32), new THREE.MeshStandardMaterial({color: 0x111620, roughness: 0.4}));
+      lHead.position.set(0, 5.5, 0);
+      lightGrp.add(lHead);
+      
+      for(let a=0; a<Math.PI*2; a+=Math.PI/3) {
+         const bulb = mk(new THREE.CylinderGeometry(0.4, 0.4, 0.1, 16), mG(0x0ea5e9, 2));
+         bulb.position.set(Math.cos(a)*1.2, 5.3, Math.sin(a)*1.2);
+         lightGrp.add(bulb);
+      }
+      const lCone = mk(new THREE.ConeGeometry(3, 6, 32), new THREE.MeshBasicMaterial({color: 0x0ea5e9, transparent: true, opacity: 0.08, side: THREE.DoubleSide}));
+      lCone.position.set(0, 2.5, 0);
+      lightGrp.add(lCone);
+
+      g.add(lightGrp);
+      g.userData.lightGrp = lightGrp;
+
+      g.position.y = -2;
+      g.visible = false;
       scene.add(g); sceneGroups.push(g);
     })();
 
@@ -1249,14 +1364,50 @@
             <span class="ptag-chip" style="color:var(--amber);border-color:rgba(240,165,0,.2)">Spatial</span>
             <span class="ptag-chip" style="color:var(--emerald);border-color:rgba(52,211,153,.2)">Multimodal</span>
           </div>
+          </div>
         `
       },
-      { // 2 — App 1: Intelligent NPCs
+      { // 2 — App 1: Healthcare (DRL)
+        sceneIdx: 5,
+        sky: 0x040810, fog: 0x04081a, fogFar: 180,
+        cam: { pos: [6, 6, 12], tgt: [0, 1.5, 0] },
+        html: `
+          <div class="ptag"><span class="ptag-dot" style="background:var(--cyan)"></span> Slide 03 · Application 1</div>
+          <div class="ptitle">Healthcare & <span style="color:var(--cyan)">DRL</span></div>
+          <div class="pdesc" style="margin-bottom: 24px">
+            <span style="color:var(--cyan)">Casey:</span> "Let’s look at Application 1 on Slide 3: Healthcare. We’ve moved past static medical mannequins."<br><br>
+            <span style="color:var(--violet)">Jordan:</span> "Technically speaking, we’re using Deep Reinforcement Learning (DRL) here. The AI isn't following a script; it’s an Agent-based model. It observes the trainee’s actions as inputs into a 'State Space.' If the student makes a mistake, the AI uses a Proximal Policy Optimization (PPO) algorithm to 'reward' or 'punish' the virtual patient’s vitals in a realistic, non-linear way."
+          </div>
+          <div class="ptechs">
+            <span class="ptag-chip" style="color:var(--cyan);border-color:rgba(14,165,233,.2)">Agent-based</span>
+            <span class="ptag-chip" style="color:var(--violet);border-color:rgba(167,139,250,.2)">DRL</span>
+            <span class="ptag-chip" style="color:var(--amber);border-color:rgba(240,165,0,.2)">PPO Algorithm</span>
+          </div>
+        `
+      },
+      { // 3 — Case Study: Sepsis
+        sceneIdx: 5,
+        sky: 0x040810, fog: 0x04081a, fogFar: 180,
+        cam: { pos: [-5, 5, 8], tgt: [-2, 3, 0] },
+        html: `
+          <div class="ptag"><span class="ptag-dot" style="background:var(--amber)"></span> Slide 04 · Case Study</div>
+          <div class="ptitle">Sepsis <span style="color:var(--amber)">Case Study</span></div>
+          <div class="pdesc" style="margin-bottom: 16px">
+            <span style="color:var(--cyan)">Casey:</span> "And Slide 4 proves it with our Sepsis Case Study. In the 2025-2026 trials, we used a Biometric Feedback Loop. The system monitored the trainee's heart rate via the headset's sensors."<br><br>
+            "If the AI detected high cortisol levels (stress), it actually modulated the patient's vocalizations using Real-time Generative Audio. The result? A <strong>24% increase</strong> in clinical accuracy during real-world sepsis triage because the students had already 'lived' through the high-stress variables."
+          </div>
+          <div class="ptechs">
+            <span class="ptag-chip" style="color:var(--amber);border-color:rgba(240,165,0,.2)">Biometric Feedback</span>
+            <span class="ptag-chip" style="color:var(--cyan);border-color:rgba(14,165,233,.2)">Gen-Audio</span>
+          </div>
+        `
+      },
+      { // 4 — App 2: Intelligent NPCs
         sceneIdx: 1,
         sky: 0x0a0a1f, fog: 0x0d1240, fogFar: 180,
         cam: { pos: [0, 6, 14], tgt: [0, 3, 0] },
         html: `
-          <div class="ptag"><span class="ptag-dot" style="background:var(--violet)"></span> Slide 03 · Application 1</div>
+          <div class="ptag"><span class="ptag-dot" style="background:var(--violet)"></span> Slide 05 · Application 2</div>
           <div class="ptitle">Intelligent <span style="color:var(--violet)">NPCs</span> &<br>Embodied Agents</div>
           <ul class="pbullets">
             <li><strong>Concept:</strong> Replacing scripted characters with <em>LLMs</em> that have "memory" and emotional intelligence.</li>
@@ -1276,7 +1427,7 @@
         sky: 0x0a0a1f, fog: 0x0d1240, fogFar: 180,
         cam: { pos: [6, 5, 12], tgt: [0, 3, 0] },
         html: `
-          <div class="ptag"><span class="ptag-dot" style="background:var(--amber)"></span> Slide 04 · Case Study 01</div>
+          <div class="ptag"><span class="ptag-dot" style="background:var(--amber)"></span> Slide 06 · Case Study 02</div>
           <div class="ptitle">Next-Gen Student<br><span style="color:var(--amber)">Orientation</span></div>
           <div class="csbox">
             <div class="csbox-title">The Project</div>
@@ -1297,7 +1448,7 @@
         sky: 0x3a6fa8, fog: 0x87ceeb, fogFar: 160,
         cam: { pos: [0, 12, 25], tgt: [0, 3, 0] },
         html: `
-          <div class="ptag"><span class="ptag-dot" style="background:var(--emerald)"></span> Slide 05 · Application 2</div>
+          <div class="ptag"><span class="ptag-dot" style="background:var(--emerald)"></span> Slide 07 · Application 3</div>
           <div class="ptitle">Procedural<br><span style="color:var(--emerald)">World Building</span></div>
           <ul class="pbullets">
             <li><strong>Concept:</strong> AI-driven <em>"Infinite Worlds"</em> where environments are generated on-the-fly based on user behavior.</li>
@@ -1317,7 +1468,7 @@
         sky: 0x3a6fa8, fog: 0x87ceeb, fogFar: 160,
         cam: { pos: [10, 8, 20], tgt: [0, 3, 0] },
         html: `
-          <div class="ptag"><span class="ptag-dot" style="background:var(--amber)"></span> Slide 06 · Case Study 02</div>
+          <div class="ptag"><span class="ptag-dot" style="background:var(--amber)"></span> Slide 08 · Case Study 03</div>
           <div class="ptitle">Industrial Metaverse<br>& <span style="color:var(--amber)">Digital Twins</span></div>
           <div class="csbox">
             <div class="csbox-title">The Project</div>
@@ -1338,7 +1489,7 @@
         sky: 0x060610, fog: 0x060610, fogFar: 200,
         cam: { pos: [-4, 4, 14], tgt: [0, 2, 2] },
         html: `
-          <div class="ptag"><span class="ptag-dot" style="background:var(--cyan)"></span> Slide 07 · Application 3</div>
+          <div class="ptag"><span class="ptag-dot" style="background:var(--cyan)"></span> Slide 09 · Application 4</div>
           <div class="ptitle">Predictive<br><span style="color:var(--cyan)">Tracking</span> & Optimization</div>
           <ul class="pbullets">
             <li><strong>Gaze Tracking:</strong> AI interprets <em>eye movement</em> and hand gestures to optimize rendering and UI.</li>
@@ -1358,7 +1509,7 @@
         sky: 0x060610, fog: 0x060610, fogFar: 200,
         cam: { pos: [4, 6, 16], tgt: [0, 2, 2] },
         html: `
-          <div class="ptag"><span class="ptag-dot" style="background:var(--amber)"></span> Slide 08 · Case Study 03</div>
+          <div class="ptag"><span class="ptag-dot" style="background:var(--amber)"></span> Slide 10 · Case Study 04</div>
           <div class="ptitle">Medical<br><span style="color:var(--amber)">Neurorehabilitation</span></div>
           <div class="csbox">
             <div class="csbox-title">The Project</div>
@@ -1379,7 +1530,7 @@
         sky: 0x060610, fog: 0x060610, fogFar: 200,
         cam: { pos: [6, 4, 12], tgt: [2, 1, 0] },
         html: `
-          <div class="ptag"><span class="ptag-dot" style="background:var(--emerald)"></span> Slide 09 · Case Study 04</div>
+          <div class="ptag"><span class="ptag-dot" style="background:var(--emerald)"></span> Slide 11 · Case Study 05</div>
           <div class="ptitle">NVIDIA <span style="color:var(--emerald)">DLSS 3</span><br>& RTX in VR</div>
           <div class="psubtitle">AI-Powered Real-Time Rendering Upscaling</div>
           <div class="csbox">
@@ -1397,12 +1548,37 @@
           <div class="pquote">"DLSS 3 is the biggest leap in rendering AI since the original DLSS. Frame Generation literally creates frames the GPU never rendered." — <em>Jensen Huang, NVIDIA CEO</em></div>
         `
       },
-      { // 9 — Conclusion
+      { // 9 — NVIDIA Omniverse
+        sceneIdx: 3,
+        sky: 0x060610, fog: 0x060610, fogFar: 200,
+        cam: { pos: [8, 5, 14], tgt: [2, 1, 0] },
+        html: `
+          <div class="ptag"><span class="ptag-dot" style="background:var(--emerald)"></span> Slide 12 · Case Study 06</div>
+          <div class="ptitle">NVIDIA <span style="color:var(--emerald)">Omniverse</span><br>& GR00T-Mimic</div>
+          <div class="csbox">
+            <div class="csbox-title">The Technology</div>
+            <div class="csbox-text">Built on NVIDIA Omniverse DSX and Isaac Sim. It utilizes the <em>GR00T-Mimic model</em>, allowing robots to learn complex assembly tasks through VR demonstrations rather than manual coding.</div>
+          </div>
+          <div class="csbox">
+            <div class="csbox-title">The "Tiny Detail"</div>
+            <div class="csbox-text">A 1:1 Digital Twin using <em>OpenUSD architecture</em>. Physics are 99.9% accurate, ensuring that AI-trained movements in VR translate perfectly to the physical factory floor (<em>Sim-to-Real</em>).</div>
+          </div>
+          <div class="csbox">
+            <div class="csbox-title">The Impact</div>
+            <ul class="pbullets" style="margin-top:0">
+              <li><strong>30%</strong> Faster global factory deployment.</li>
+              <li><strong>70%</strong> Reduction in physical robot collision errors.</li>
+              <li><strong>27%</strong> Increase in operational throughput.</li>
+            </ul>
+          </div>
+        `
+      },
+      { // 10 — Conclusion
         sceneIdx: 4,
         sky: 0x040408, fog: 0x040408, fogFar: 300,
         cam: { pos: [0, 6, 16], tgt: [0, 2, 0] },
         html: `
-          <div class="ptag"><span class="ptag-dot" style="background:var(--cyan)"></span> Slide 10 · Conclusion</div>
+          <div class="ptag"><span class="ptag-dot" style="background:var(--cyan)"></span> Slide 13 · Conclusion</div>
           <div class="ptitle">AI Makes VR<br><span style="color:var(--cyan)">Intelligent</span>, Interactive<br>& <span style="color:var(--amber)">Immersive</span></div>
           <ul class="pbullets">
             <li><strong>Synergy:</strong> VR provides the <em>"body"</em> (environment), while AI provides the <em>"brain"</em> (intelligence).</li>
@@ -1419,12 +1595,12 @@
           </div>
         `
       },
-      { // 10 — Future Outlook
+      { // 11 — Future Outlook
         sceneIdx: 4,
         sky: 0x020208, fog: 0x020208, fogFar: 350,
         cam: { pos: [8, 8, 20], tgt: [0, 2, 0] },
         html: `
-          <div class="ptag"><span class="ptag-dot" style="background:var(--rose)"></span> Slide 11 · Future Outlook</div>
+          <div class="ptag"><span class="ptag-dot" style="background:var(--rose)"></span> Slide 14 · Future Outlook</div>
           <div class="ptitle">The Smartphone<br><span style="color:var(--rose)">Replacement</span> Era</div>
           <ul class="pbullets">
             <li><strong>The Goal:</strong> Transition to <em>lightweight AR/VR eyewear</em> as the primary digital interface by 2030.</li>
@@ -1455,7 +1631,7 @@
     const transEl = document.getElementById('transition');
 
     // Build nav dots
-    const dotLabels = ['INTRO', 'AI 2026', 'NPCs', 'CASE 01', 'WORLDS', 'CASE 02', 'TRACKING', 'CASE 03', 'DLSS', 'CONCLUSION', 'FUTURE'];
+    const dotLabels = ['INTRO', 'AI 2026', 'HEALTH', 'SEPSIS', 'NPCs', 'CASE 02', 'WORLDS', 'CASE 03', 'TRACKING', 'CASE 04', 'DLSS', 'OMNIVERSE', 'CONCLUSION', 'FUTURE'];
     SLIDES.forEach((_, i) => {
       const d = document.createElement('div');
       d.className = 'ndot' + (i === 0 ? ' on' : '');
@@ -1606,32 +1782,25 @@
           }
         });
       }
-      if (si === 2) { // Terrain
-        if (sg.userData.scan) sg.userData.scan.position.z = ((T * .65) % 60) - 30;
-        if (sg.userData.water) sg.userData.water.position.y = .5 + Math.sin(T * .8) * .04;
+      if (si === 2) { // Cathedral
+        if (sg.userData.cathedral) {
+          sg.userData.cathedral.rotation.y = Math.sin(T * 0.4) * 0.05;
+        }
       }
-      if (si === 3) { // Eye/Tracking
-        if (sg.userData.iris) sg.userData.iris.material.emissiveIntensity = .4 + Math.sin(T * 1.5) * .3;
-        if (sg.userData.pupil) {
-          const ps = .8 + Math.sin(T * .7) * .25;
-          sg.userData.pupil.scale.set(ps, ps, .15);
+      if (si === 3) { // AI Car Model
+        if (sg.userData.car) {
+          sg.userData.car.position.y = Math.sin(T * 8) * 0.05;
+          sg.userData.car.rotation.z = Math.sin(T * 4) * 0.02;
+          sg.userData.car.rotation.x = Math.sin(T * 2) * 0.01;
         }
         sg.userData.scanRings?.forEach(r => {
-          r.rotation.z += r.userData.spd;
-          r.rotation.x = Math.sin(T * .5) * .15;
+          r.position.z = Math.sin(T * 1.2) * 3;
         });
-        if (sg.userData.reticle) {
-          sg.userData.reticle.position.x = Math.sin(T * .6) * 1.5;
-          sg.userData.reticle.position.y = Math.cos(T * .45) * 1;
-          sg.userData.reticle.rotation.z += .03;
-        }
-        if (sg.userData.reticle2) {
-          sg.userData.reticle2.position.x = Math.sin(T * .6) * 1.5;
-          sg.userData.reticle2.position.y = Math.cos(T * .45) * 1;
-          sg.userData.reticle2.rotation.z -= .04; // Rotate opposite direction
-        }
-        if (sg.userData.gpu) {
-          sg.userData.gpu.rotation.y = .5 + Math.sin(T * .4) * .15;
+        if (sg.userData.speedPts) {
+          sg.userData.speedPts.position.z += 0.8;
+          if (sg.userData.speedPts.position.z > 20) {
+            sg.userData.speedPts.position.z = 0;
+          }
         }
       }
       if (si === 4) { // Conclusion
@@ -1644,6 +1813,14 @@
           t.rotation.x += .004 + i * .002;
         });
         sg.rotation.y = T * .018;
+      }
+      if (si === 5) { // Surgery Room
+        if (sg.userData.ecg) {
+          sg.userData.ecg.scale.y = 0.8 + Math.sin(T * 8) * 0.4;
+        }
+        if (sg.userData.lightGrp) {
+          sg.userData.lightGrp.position.y = Math.sin(T * 0.5) * 0.2;
+        }
       }
 
       R.render(scene, cam);
