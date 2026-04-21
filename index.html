@@ -743,7 +743,7 @@
       <div class="logo-icon">◉</div>
       <span>AI <span style="color:var(--cyan)">× VR</span></span>
     </div>
-    <div id="slide-counter">01 / 12</div>
+    <div id="slide-counter">01 / 11</div>
   </div>
 
   <!-- Nav dots -->
@@ -1245,6 +1245,86 @@
       scene.add(g); sceneGroups.push(g);
     })();
 
+    /* ── SCENE F: Surgery Room (slides 3-4) ───────────── */
+    (() => {
+      const g = new THREE.Group();
+      
+      const gnd = mk(new THREE.PlaneGeometry(60, 60), new THREE.MeshStandardMaterial({ color: 0x070c14, roughness: 0.3, metalness: 0.6 }));
+      gnd.rotation.x = -Math.PI / 2;
+      gnd.receiveShadow = true;
+      g.add(gnd);
+      
+      const grid = new THREE.GridHelper(60, 30, 0x0ea5e9, 0x0ea5e9);
+      grid.position.y = 0.01;
+      grid.material.opacity = 0.05;
+      grid.material.transparent = true;
+      g.add(grid);
+
+      const tableBase = mk(new THREE.CylinderGeometry(0.8, 1.2, 1.5, 16), new THREE.MeshStandardMaterial({ color: 0x111620, roughness: 0.2, metalness: 0.8 }));
+      tableBase.position.y = 0.75;
+      g.add(tableBase);
+      
+      const tableTop = mk(new THREE.BoxGeometry(2.5, 0.2, 6), new THREE.MeshStandardMaterial({ color: 0x071118, roughness: 0.1, metalness: 0.9 }));
+      tableTop.position.set(0, 1.6, 0);
+      g.add(tableTop);
+      
+      const monitorGrp = new THREE.Group();
+      const stand = mk(new THREE.CylinderGeometry(0.1, 0.1, 3.5, 8), new THREE.MeshStandardMaterial({ color: 0x111620, roughness: 0.3, metalness: 0.7 }));
+      stand.position.set(-3, 1.75, -2);
+      monitorGrp.add(stand);
+      
+      const screen = mk(new THREE.BoxGeometry(2.5, 1.5, 0.2), new THREE.MeshStandardMaterial({ color: 0x020202, roughness: 0.3, metalness: 0.5 }));
+      screen.position.set(-2.5, 3.2, -1.8);
+      screen.rotation.y = Math.PI/6;
+      monitorGrp.add(screen);
+      
+      const pts = [];
+      for(let x=0; x<2; x+=0.05) {
+         let y = 0;
+         let k = x % 1.0;
+         if (k > 0.4 && k < 0.45) y = 0.2;
+         else if (k >= 0.45 && k < 0.5) y = -0.15;
+         else if (k >= 0.5 && k < 0.6) y = 0.6;
+         else if (k >= 0.6 && k < 0.65) y = -0.3;
+         else if (k >= 0.65 && k < 0.75) y = 0.1;
+         pts.push(new THREE.Vector3(x - 1, y, 0));
+      }
+      const ecgGeo = new THREE.BufferGeometry().setFromPoints(pts);
+      const ecgLine = new THREE.Line(ecgGeo, new THREE.LineBasicMaterial({color: 0x34d399, transparent: true, opacity: 0.8}));
+      ecgLine.position.set(-2.5, 3.25, -1.68);
+      ecgLine.rotation.y = Math.PI/6;
+      monitorGrp.add(ecgLine);
+      g.userData.ecg = ecgLine;
+
+      g.add(monitorGrp);
+      
+      const lightGrp = new THREE.Group();
+      const lArm = mk(new THREE.CylinderGeometry(0.1, 0.1, 4, 8), new THREE.MeshStandardMaterial({ color: 0x222630 }));
+      lArm.position.set(0, 7, 3);
+      lArm.rotation.x = Math.PI/4;
+      lightGrp.add(lArm);
+      
+      const lHead = mk(new THREE.CylinderGeometry(2, 2, 0.4, 32), new THREE.MeshStandardMaterial({color: 0x111620, roughness: 0.4}));
+      lHead.position.set(0, 5.5, 0);
+      lightGrp.add(lHead);
+      
+      for(let a=0; a<Math.PI*2; a+=Math.PI/3) {
+         const bulb = mk(new THREE.CylinderGeometry(0.4, 0.4, 0.1, 16), mG(0x0ea5e9, 2));
+         bulb.position.set(Math.cos(a)*1.2, 5.3, Math.sin(a)*1.2);
+         lightGrp.add(bulb);
+      }
+      const lCone = mk(new THREE.ConeGeometry(3, 6, 32), new THREE.MeshBasicMaterial({color: 0x0ea5e9, transparent: true, opacity: 0.08, side: THREE.DoubleSide}));
+      lCone.position.set(0, 2.5, 0);
+      lightGrp.add(lCone);
+
+      g.add(lightGrp);
+      g.userData.lightGrp = lightGrp;
+
+      g.position.y = -2;
+      g.visible = false;
+      scene.add(g); sceneGroups.push(g);
+    })();
+
     /* ══════════════════════════════════════════════════════════
        11 SLIDE CONTENT DATA
     ══════════════════════════════════════════════════════════ */
@@ -1284,14 +1364,50 @@
             <span class="ptag-chip" style="color:var(--amber);border-color:rgba(240,165,0,.2)">Spatial</span>
             <span class="ptag-chip" style="color:var(--emerald);border-color:rgba(52,211,153,.2)">Multimodal</span>
           </div>
+          </div>
         `
       },
-      { // 2 — App 1: Intelligent NPCs
+      { // 2 — App 1: Healthcare (DRL)
+        sceneIdx: 5,
+        sky: 0x040810, fog: 0x04081a, fogFar: 180,
+        cam: { pos: [6, 6, 12], tgt: [0, 1.5, 0] },
+        html: `
+          <div class="ptag"><span class="ptag-dot" style="background:var(--cyan)"></span> Slide 03 · Application 1</div>
+          <div class="ptitle">Healthcare & <span style="color:var(--cyan)">DRL</span></div>
+          <div class="pdesc" style="margin-bottom: 24px">
+            <span style="color:var(--cyan)">Casey:</span> "Let’s look at Application 1 on Slide 3: Healthcare. We’ve moved past static medical mannequins."<br><br>
+            <span style="color:var(--violet)">Jordan:</span> "Technically speaking, we’re using Deep Reinforcement Learning (DRL) here. The AI isn't following a script; it’s an Agent-based model. It observes the trainee’s actions as inputs into a 'State Space.' If the student makes a mistake, the AI uses a Proximal Policy Optimization (PPO) algorithm to 'reward' or 'punish' the virtual patient’s vitals in a realistic, non-linear way."
+          </div>
+          <div class="ptechs">
+            <span class="ptag-chip" style="color:var(--cyan);border-color:rgba(14,165,233,.2)">Agent-based</span>
+            <span class="ptag-chip" style="color:var(--violet);border-color:rgba(167,139,250,.2)">DRL</span>
+            <span class="ptag-chip" style="color:var(--amber);border-color:rgba(240,165,0,.2)">PPO Algorithm</span>
+          </div>
+        `
+      },
+      { // 3 — Case Study: Sepsis
+        sceneIdx: 5,
+        sky: 0x040810, fog: 0x04081a, fogFar: 180,
+        cam: { pos: [-5, 5, 8], tgt: [-2, 3, 0] },
+        html: `
+          <div class="ptag"><span class="ptag-dot" style="background:var(--amber)"></span> Slide 04 · Case Study</div>
+          <div class="ptitle">Sepsis <span style="color:var(--amber)">Case Study</span></div>
+          <div class="pdesc" style="margin-bottom: 16px">
+            <span style="color:var(--cyan)">Casey:</span> "And Slide 4 proves it with our Sepsis Case Study. In the 2025-2026 trials, we used a Biometric Feedback Loop. The system monitored the trainee's heart rate via the headset's sensors."<br><br>
+            "If the AI detected high cortisol levels (stress), it actually modulated the patient's vocalizations using Real-time Generative Audio. The result? A <strong>24% increase</strong> in clinical accuracy during real-world sepsis triage because the students had already 'lived' through the high-stress variables."
+          </div>
+          <div class="ptechs">
+            <span class="ptag-chip" style="color:var(--amber);border-color:rgba(240,165,0,.2)">Biometric Feedback</span>
+            <span class="ptag-chip" style="color:var(--cyan);border-color:rgba(14,165,233,.2)">Gen-Audio</span>
+          </div>
+        `
+      },
+      { // 4 — App 2: Intelligent NPCs
         sceneIdx: 1,
         sky: 0x0a0a1f, fog: 0x0d1240, fogFar: 180,
         cam: { pos: [0, 6, 14], tgt: [0, 3, 0] },
         html: `
-          <div class="ptag"><span class="ptag-dot" style="background:var(--violet)"></span> Slide 03 · Application 1</div>
+          <div class="ptag"><span class="ptag-dot" style="background:var(--violet)"></span> Slide 05 · Application 2</div>
           <div class="ptitle">Intelligent <span style="color:var(--violet)">NPCs</span> &<br>Embodied Agents</div>
           <ul class="pbullets">
             <li><strong>Concept:</strong> Replacing scripted characters with <em>LLMs</em> that have "memory" and emotional intelligence.</li>
@@ -1311,7 +1427,7 @@
         sky: 0x0a0a1f, fog: 0x0d1240, fogFar: 180,
         cam: { pos: [6, 5, 12], tgt: [0, 3, 0] },
         html: `
-          <div class="ptag"><span class="ptag-dot" style="background:var(--amber)"></span> Slide 04 · Case Study 01</div>
+          <div class="ptag"><span class="ptag-dot" style="background:var(--amber)"></span> Slide 06 · Case Study 02</div>
           <div class="ptitle">Next-Gen Student<br><span style="color:var(--amber)">Orientation</span></div>
           <div class="csbox">
             <div class="csbox-title">The Project</div>
@@ -1332,7 +1448,7 @@
         sky: 0x3a6fa8, fog: 0x87ceeb, fogFar: 160,
         cam: { pos: [0, 12, 25], tgt: [0, 3, 0] },
         html: `
-          <div class="ptag"><span class="ptag-dot" style="background:var(--emerald)"></span> Slide 05 · Application 2</div>
+          <div class="ptag"><span class="ptag-dot" style="background:var(--emerald)"></span> Slide 07 · Application 3</div>
           <div class="ptitle">Procedural<br><span style="color:var(--emerald)">World Building</span></div>
           <ul class="pbullets">
             <li><strong>Concept:</strong> AI-driven <em>"Infinite Worlds"</em> where environments are generated on-the-fly based on user behavior.</li>
@@ -1352,7 +1468,7 @@
         sky: 0x3a6fa8, fog: 0x87ceeb, fogFar: 160,
         cam: { pos: [10, 8, 20], tgt: [0, 3, 0] },
         html: `
-          <div class="ptag"><span class="ptag-dot" style="background:var(--amber)"></span> Slide 06 · Case Study 02</div>
+          <div class="ptag"><span class="ptag-dot" style="background:var(--amber)"></span> Slide 08 · Case Study 03</div>
           <div class="ptitle">Industrial Metaverse<br>& <span style="color:var(--amber)">Digital Twins</span></div>
           <div class="csbox">
             <div class="csbox-title">The Project</div>
@@ -1369,11 +1485,11 @@
         `
       },
       { // 6 — App 3: Predictive Tracking
-        sceneIdx: 3,
+        sceneIdx: 2,
         sky: 0x060610, fog: 0x060610, fogFar: 200,
         cam: { pos: [-4, 4, 14], tgt: [0, 2, 2] },
         html: `
-          <div class="ptag"><span class="ptag-dot" style="background:var(--cyan)"></span> Slide 07 · Application 3</div>
+          <div class="ptag"><span class="ptag-dot" style="background:var(--cyan)"></span> Slide 09 · Application 4</div>
           <div class="ptitle">Predictive<br><span style="color:var(--cyan)">Tracking</span> & Optimization</div>
           <ul class="pbullets">
             <li><strong>Gaze Tracking:</strong> AI interprets <em>eye movement</em> and hand gestures to optimize rendering and UI.</li>
@@ -1388,33 +1504,12 @@
           </div>
         `
       },
-      { // 7 — Case Study: Medical Neurorehab
-        sceneIdx: 3,
-        sky: 0x060610, fog: 0x060610, fogFar: 200,
-        cam: { pos: [4, 6, 16], tgt: [0, 2, 2] },
-        html: `
-          <div class="ptag"><span class="ptag-dot" style="background:var(--amber)"></span> Slide 08 · Case Study 03</div>
-          <div class="ptitle">Medical<br><span style="color:var(--amber)">Neurorehabilitation</span></div>
-          <div class="csbox">
-            <div class="csbox-title">The Project</div>
-            <div class="csbox-text">Integrated eye-tracking VR systems (<em>Varjo/machineMD</em> collaboration).</div>
-          </div>
-          <div class="csbox">
-            <div class="csbox-title">Functionality</div>
-            <div class="csbox-text">Using <em>200Hz sampling</em> to track gaze patterns during surgical training and diagnostic assessments.</div>
-          </div>
-          <div class="csbox">
-            <div class="csbox-title">Result</div>
-            <div class="csbox-text">AI-driven metrics identified <em>"visuomotor strategies"</em> in patients, treating PTSD and chronic pain with <em>40% better outcomes</em> compared to non-AI-assisted VR.</div>
-          </div>
-        `
-      },
       { // 8 — NVIDIA DLSS 3 & RTX
         sceneIdx: 3,
         sky: 0x060610, fog: 0x060610, fogFar: 200,
         cam: { pos: [6, 4, 12], tgt: [2, 1, 0] },
         html: `
-          <div class="ptag"><span class="ptag-dot" style="background:var(--emerald)"></span> Slide 09 · Case Study 04</div>
+          <div class="ptag"><span class="ptag-dot" style="background:var(--emerald)"></span> Slide 10 · Case Study 04</div>
           <div class="ptitle">NVIDIA <span style="color:var(--emerald)">DLSS 3</span><br>& RTX in VR</div>
           <div class="psubtitle">AI-Powered Real-Time Rendering Upscaling</div>
           <div class="csbox">
@@ -1432,37 +1527,12 @@
           <div class="pquote">"DLSS 3 is the biggest leap in rendering AI since the original DLSS. Frame Generation literally creates frames the GPU never rendered." — <em>Jensen Huang, NVIDIA CEO</em></div>
         `
       },
-      { // 9 — NVIDIA Omniverse
-        sceneIdx: 3,
-        sky: 0x060610, fog: 0x060610, fogFar: 200,
-        cam: { pos: [8, 5, 14], tgt: [2, 1, 0] },
-        html: `
-          <div class="ptag"><span class="ptag-dot" style="background:var(--emerald)"></span> Slide 10 · Case Study 05</div>
-          <div class="ptitle">NVIDIA <span style="color:var(--emerald)">Omniverse</span><br>& GR00T-Mimic</div>
-          <div class="csbox">
-            <div class="csbox-title">The Technology</div>
-            <div class="csbox-text">Built on NVIDIA Omniverse DSX and Isaac Sim. It utilizes the <em>GR00T-Mimic model</em>, allowing robots to learn complex assembly tasks through VR demonstrations rather than manual coding.</div>
-          </div>
-          <div class="csbox">
-            <div class="csbox-title">The "Tiny Detail"</div>
-            <div class="csbox-text">A 1:1 Digital Twin using <em>OpenUSD architecture</em>. Physics are 99.9% accurate, ensuring that AI-trained movements in VR translate perfectly to the physical factory floor (<em>Sim-to-Real</em>).</div>
-          </div>
-          <div class="csbox">
-            <div class="csbox-title">The Impact</div>
-            <ul class="pbullets" style="margin-top:0">
-              <li><strong>30%</strong> Faster global factory deployment.</li>
-              <li><strong>70%</strong> Reduction in physical robot collision errors.</li>
-              <li><strong>27%</strong> Increase in operational throughput.</li>
-            </ul>
-          </div>
-        `
-      },
-      { // 10 — Conclusion
+      { // 9 — Conclusion
         sceneIdx: 4,
         sky: 0x040408, fog: 0x040408, fogFar: 300,
         cam: { pos: [0, 6, 16], tgt: [0, 2, 0] },
         html: `
-          <div class="ptag"><span class="ptag-dot" style="background:var(--cyan)"></span> Slide 11 · Conclusion</div>
+          <div class="ptag"><span class="ptag-dot" style="background:var(--cyan)"></span> Slide 10 · Conclusion</div>
           <div class="ptitle">AI Makes VR<br><span style="color:var(--cyan)">Intelligent</span>, Interactive<br>& <span style="color:var(--amber)">Immersive</span></div>
           <ul class="pbullets">
             <li><strong>Synergy:</strong> VR provides the <em>"body"</em> (environment), while AI provides the <em>"brain"</em> (intelligence).</li>
@@ -1484,7 +1554,7 @@
         sky: 0x020208, fog: 0x020208, fogFar: 350,
         cam: { pos: [8, 8, 20], tgt: [0, 2, 0] },
         html: `
-          <div class="ptag"><span class="ptag-dot" style="background:var(--rose)"></span> Slide 12 · Future Outlook</div>
+          <div class="ptag"><span class="ptag-dot" style="background:var(--rose)"></span> Slide 11 · Future Outlook</div>
           <div class="ptitle">The Smartphone<br><span style="color:var(--rose)">Replacement</span> Era</div>
           <ul class="pbullets">
             <li><strong>The Goal:</strong> Transition to <em>lightweight AR/VR eyewear</em> as the primary digital interface by 2030.</li>
@@ -1515,7 +1585,7 @@
     const transEl = document.getElementById('transition');
 
     // Build nav dots
-    const dotLabels = ['INTRO', 'AI 2026', 'NPCs', 'CASE 01', 'WORLDS', 'CASE 02', 'TRACKING', 'CASE 03', 'DLSS', 'OMNIVERSE', 'CONCLUSION', 'FUTURE'];
+    const dotLabels = ['INTRO', 'AI 2026', 'NPCs', 'CASE 01', 'WORLDS', 'CASE 02', 'TRACKING', 'CASE 03', 'DLSS', 'CONCLUSION', 'FUTURE'];
     SLIDES.forEach((_, i) => {
       const d = document.createElement('div');
       d.className = 'ndot' + (i === 0 ? ' on' : '');
@@ -1697,6 +1767,14 @@
           t.rotation.x += .004 + i * .002;
         });
         sg.rotation.y = T * .018;
+      }
+      if (si === 5) { // Surgery Room
+        if (sg.userData.ecg) {
+          sg.userData.ecg.scale.y = 0.8 + Math.sin(T * 8) * 0.4;
+        }
+        if (sg.userData.lightGrp) {
+          sg.userData.lightGrp.position.y = Math.sin(T * 0.5) * 0.2;
+        }
       }
 
       R.render(scene, cam);
